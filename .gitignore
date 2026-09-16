@@ -1,0 +1,29 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# Compiled files
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+
+# macOS
+.DS_Store
+*.dSYM/
+*.dSYM.zip
+
+# IDE
+.vscode/
+.idea/
+
+# Generated benchmark results
+results/*.csv
+results/*.png
+
+# Keep result directory
+!results/.gitkeep
