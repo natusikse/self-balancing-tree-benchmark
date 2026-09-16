@@ -1,80 +1,138 @@
-#include "splay.hpp"
 #include "avl.hpp"
 #include "bst.hpp"
+#include "splay.hpp"
+
+#include <algorithm>
+#include <iomanip>
 #include <iostream>
-#include <cstdlib> // library for random thingies
-using namespace std;
+#include <numeric>
+#include <random>
+#include <string>
+#include <vector>
 
-int main() {
-    /*
-    it was just a quick check of a splay tree
-    Splay<int> tree;
-    tree.insert(15);
-    tree.insert(5);
-    tree.insert(20);
-    tree.print();
-    */
-    // the benchmark with numbers in trees in order
-    BST<int> tree_bst;
-    Splay<int> tree_splay;
-    AvlTree<int> tree_avl;
-    long long totalDep_inOrder_splay = 0;
-    long long totalDep_inOrder_avl = 0;
-    long long totalDep_inOrder_bst = 0;
-    for (int i = 0; i <= 1000; i++){
-        tree_bst.insert(i);
-        tree_splay.insert(i);
-        tree_avl.insert(i);
-    }
-    for (int i = 0; i < 100000; i++){
-        int randomSearch = rand() % 1001; // the random number such that it doesn't get the big number
-        totalDep_inOrder_splay += tree_splay.find(randomSearch); 
-        totalDep_inOrder_avl += tree_avl.find(randomSearch); 
-        totalDep_inOrder_bst += tree_bst.find(randomSearch);
-    }
-    cout << "the average depth of 100 000 random seraches in the bst tree in the right order of 1000 numbers is: " << totalDep_inOrder_bst/100000.0 << endl;
-    cout << "the average depth of 100 000 random seraches in the splay tree in the right order of 1000 numbers is: " << totalDep_inOrder_splay/100000.0 << endl;
-    cout << "the average depth of 100 000 random seraches in the avl tree in the right order of 1000 numbers is: " << totalDep_inOrder_avl/100000.0 <<endl;
-    
-    // the benchmark with numbers in trees in RANDOM order
-    BST<int> tree_bst1;
-    Splay<int> tree_splay1;
-    AvlTree<int> tree_avl1;
-    long long totalDep_inRandomOrder_splay = 0;
-    long long totalDep_inRandomOrder_avl = 0;
-    long long totalDep_inRandomOrder_bst = 0;
-    // these are heeeded for avoiding repetitions
-    const int MAX = 1001;
-    int used[MAX];   // 0 = wasn't used, 1 = used
-    for (int i = 0; i < MAX; i++) {
-        used[i] = 0;
-    }
-    srand(time(0));  // initialization of random numbers
-    for (int count = 0; count < 1000; count++) {
-        int num = rand() % MAX;
-        // while the number was used, taking a new one
-        while (used[num] == 1) {
-            num = rand() % MAX;
-        }
-        used[num] = 1; // note as 'used'
-        // here is num going to be unique so we put it to the trees
-        tree_bst1.insert(num);
-        tree_splay1.insert(num);
-        tree_avl1.insert(num);
-        // tree_bst1.print(); -- supposed to be quick check but it crashed my laptop so do not uncomment
-    }
-    for (int i = 0; i < 100000; i++){
-        int randomSearch = rand() % 1001; // the random number such that it doesn't get the big number
-        totalDep_inRandomOrder_splay += tree_splay1.find(randomSearch); 
-        totalDep_inRandomOrder_avl += tree_avl1.find(randomSearch); 
-        totalDep_inRandomOrder_bst += tree_bst1.find(randomSearch);
-    }
+namespace {
 
-    cout << "the average depth of 100 000 random seraches in the bst tree in the random order of 1000 numbers is: " << totalDep_inRandomOrder_bst/100000.0 << endl;
-    cout << "the average depth of 100 000 random seraches in the splay tree in the random order of 1000 numbers is: " << totalDep_inRandomOrder_splay/100000.0 << endl;
-    cout << "the average depth of 100 000 random seraches in the avl tree in the right random of 1000 numbers is: " << totalDep_inRandomOrder_avl/100000.0 <<endl;
-    
-    
-    return 0;
+constexpr int element_count = 1001;
+constexpr int search_count = 100000;
+constexpr unsigned int random_seed = 42;
+
+template <typename Tree>
+void insert_values(Tree& tree, const std::vector<int>& values) {
+    for (const int value : values) {
+        tree.insert(value);
+    }
 }
 
+template <typename Tree>
+double calculate_average_depth(
+    Tree& tree,
+    const std::vector<int>& search_values
+) {
+    long long total_depth = 0;
+
+    for (const int value : search_values) {
+        total_depth += tree.find(value);
+    }
+
+    return static_cast<double>(total_depth) /
+           static_cast<double>(search_values.size());
+}
+
+std::vector<int> create_ordered_values() {
+    std::vector<int> values(element_count);
+    std::iota(values.begin(), values.end(), 0);
+    return values;
+}
+
+std::vector<int> create_random_values() {
+    std::vector<int> values = create_ordered_values();
+    std::mt19937 generator(random_seed);
+    std::shuffle(values.begin(), values.end(), generator);
+    return values;
+}
+
+std::vector<int> create_search_values() {
+    std::vector<int> values;
+    values.reserve(search_count);
+
+    std::mt19937 generator(random_seed + 1);
+    std::uniform_int_distribution<int> distribution(0, element_count - 1);
+
+    for (int i = 0; i < search_count; ++i) {
+        values.push_back(distribution(generator));
+    }
+
+    return values;
+}
+
+void print_result(
+    const std::string& scenario,
+    const std::string& tree_name,
+    const double average_depth
+) {
+    std::cout << std::left << std::setw(20) << scenario
+              << std::setw(10) << tree_name
+              << std::fixed << std::setprecision(4)
+              << average_depth << '\n';
+}
+
+void run_scenario(
+    const std::string& scenario,
+    const std::vector<int>& insertion_values,
+    const std::vector<int>& search_values
+) {
+    BST<int> bst;
+    AvlTree<int> avl;
+    Splay<int> splay;
+
+    insert_values(bst, insertion_values);
+    insert_values(avl, insertion_values);
+    insert_values(splay, insertion_values);
+
+    print_result(
+        scenario,
+        "BST",
+        calculate_average_depth(bst, search_values)
+    );
+    print_result(
+        scenario,
+        "AVL",
+        calculate_average_depth(avl, search_values)
+    );
+    print_result(
+        scenario,
+        "Splay",
+        calculate_average_depth(splay, search_values)
+    );
+}
+
+}  // namespace
+
+int main() {
+    const std::vector<int> ordered_values = create_ordered_values();
+    const std::vector<int> random_values = create_random_values();
+    const std::vector<int> search_values = create_search_values();
+
+    std::cout << "Tree Depth Benchmark\n";
+    std::cout << "Elements: " << element_count << '\n';
+    std::cout << "Searches: " << search_count << '\n';
+    std::cout << "Random seed: " << random_seed << "\n\n";
+
+    std::cout << std::left << std::setw(20) << "Insertion order"
+              << std::setw(10) << "Tree"
+              << "Average depth\n";
+    std::cout << std::string(47, '-') << '\n';
+
+    run_scenario(
+        "Ordered",
+        ordered_values,
+        search_values
+    );
+    run_scenario(
+        "Random",
+        random_values,
+        search_values
+    );
+
+    return 0;
+}
