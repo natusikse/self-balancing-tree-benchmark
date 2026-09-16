@@ -4,7 +4,7 @@
 
 A reproducible C++ benchmark comparing Binary Search Trees, AVL Trees, and Splay Trees under ordered, randomized, and locality-focused access workloads.
 
-The project demonstrates how insertion order and access patterns affect tree structure, average search depth, and the performance characteristics of self-balancing and self-adjusting trees.
+The project demonstrates how insertion order and access patterns affect tree structure, average search depth, and the behavior of self-balancing and self-adjusting trees.
 
 ## Key Results
 
@@ -17,6 +17,8 @@ Lower average depth indicates that fewer tree levels are visited during a search
 | Ordered insertion / uniform access | 500.4089 | 7.9877 | 11.4295 |
 | Random insertion / uniform access | 10.5434 | 8.1581 | 11.4162 |
 | Random insertion / hot-key access | 8.9734 | 8.0157 | **3.8613** |
+
+![Benchmark comparison](results/average_depth.svg)
 
 With ordered insertion, the regular BST degenerates into a linked-list-like structure, producing an average search depth of approximately 500.
 
@@ -109,8 +111,15 @@ This scenario highlights the adaptive behavior of the Splay Tree. Repeatedly acc
 
 ### Requirements
 
+To build and run the C++ project:
+
 - a C++17-compatible compiler;
 - CMake 3.20 or newer.
+
+To regenerate the visualization:
+
+- Python 3;
+- `uv`, or another way to install Matplotlib.
 
 The project is automatically tested with GCC and Clang on Linux through GitHub Actions.
 
@@ -134,6 +143,12 @@ cmake --build build
 ./build/tree_benchmark
 ```
 
+The benchmark prints the results in the terminal and exports them to:
+
+```text
+results/benchmark_results.csv
+```
+
 Example output:
 
 ```text
@@ -154,7 +169,28 @@ Random / uniform      Splay     11.4162
 Random / hot-key      BST       8.9734
 Random / hot-key      AVL       8.0157
 Random / hot-key      Splay     3.8613
+
+Results written to results/benchmark_results.csv
 ```
+
+### Generate the visualization
+
+The visualization is generated from the exported CSV file:
+
+```bash
+uv run --with matplotlib python scripts/plot_results.py
+```
+
+The command creates:
+
+```text
+results/average_depth.svg
+```
+
+The visualization uses:
+
+- a logarithmic scale for the complete comparison because the ordered BST result is significantly larger than the other values;
+- a linear scale for the random-insertion workloads to make the hot-key behavior easier to compare.
 
 ## Testing
 
@@ -203,6 +239,10 @@ self-balancing-tree-benchmark/
 │   ├── avl.hpp
 │   └── splay.hpp
 ├── results/
+│   ├── average_depth.svg
+│   └── benchmark_results.csv
+├── scripts/
+│   └── plot_results.py
 ├── src/
 │   └── benchmark.cpp
 ├── tests/
@@ -220,6 +260,8 @@ self-balancing-tree-benchmark/
 - GCC;
 - Clang;
 - GitHub Actions;
+- Python;
+- Matplotlib;
 - standard C++ random-number facilities.
 
 ## Authorship and Attribution
@@ -234,6 +276,8 @@ My contribution includes:
 - benchmark design and implementation;
 - deterministic workload generation;
 - uniform and hot-key access scenarios;
+- CSV result export;
+- performance visualization;
 - CMake project configuration;
 - automated correctness tests;
 - cross-compiler continuous integration;
@@ -257,10 +301,10 @@ The measured results describe these specific deterministic workloads and should 
 - [x] Add automated correctness tests
 - [x] Add GCC and Clang continuous integration
 - [x] Add a skewed hot-key access workload
+- [x] Export benchmark results to CSV
+- [x] Add performance visualizations
 - [ ] Compare multiple dataset sizes
 - [ ] Measure execution time and rotation counts
-- [ ] Export benchmark results to CSV
-- [ ] Add performance visualizations
 - [ ] Replace owning parent pointers with non-owning references
 
 ## Academic Context

@@ -1,0 +1,10 @@
+workload,tree,average_depth
+Ordered / uniform,BST,500.4089
+Ordered / uniform,AVL,7.9877
+Ordered / uniform,Splay,11.4295
+Random / uniform,BST,10.5434
+Random / uniform,AVL,8.1581
+Random / uniform,Splay,11.4162
+Random / hot-key,BST,8.9734
+Random / hot-key,AVL,8.0157
+Random / hot-key,Splay,3.8613

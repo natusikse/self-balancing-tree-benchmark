@@ -27,3 +27,10 @@ results/*.png
 
 # Keep result directory
 !results/.gitkeep
+
+# Keep the reproducible benchmark dataset
+!results/benchmark_results.csv
+
+# Python cache
+__pycache__/
+*.py[cod]
