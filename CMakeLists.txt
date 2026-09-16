@@ -31,3 +31,31 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wpedantic
     )
 endif()
+
+enable_testing()
+
+add_executable(
+    tree_tests
+    tests/test_trees.cpp
+)
+
+target_include_directories(
+    tree_tests
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(
+        tree_tests
+        PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+endif()
+
+add_test(
+    NAME tree_correctness_tests
+    COMMAND tree_tests
+)
